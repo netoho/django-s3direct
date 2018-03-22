@@ -27,6 +27,14 @@ def sign(key, message):
     return hmac.new(key, message.encode("utf-8"), hashlib.sha256).digest()
 
 
+def get_access_key():
+    return getattr(settings, 'S3_DIRECT_ACCESS_KEY_ID', None) or getattr(settings, 'AWS_ACCESS_KEY_ID', None)
+
+
+def get_signing_secret_key():
+    return getattr(settings, 'S3_DIRECT_SECRET_ACCESS_KEY', None) or settings.AWS_SECRET_ACCESS_KEY
+
+
 def get_aws_v4_signing_key(key, signing_date, region, service):
     datestamp = signing_date.strftime('%Y%m%d')
     date_key = sign(('AWS4' + key).encode('utf-8'), datestamp)

@@ -11,7 +11,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbid
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
 
-from .utils import get_aws_v4_signature, get_aws_v4_signing_key, get_s3direct_destinations, get_key
+from .utils import get_aws_v4_signature, get_aws_v4_signing_key, get_s3direct_destinations, get_key, get_signing_secret_key, get_access_key
 
 
 @csrf_protect
@@ -56,7 +56,7 @@ def get_upload_params(request):
     endpoint = 's3.amazonaws.com' if region == 'us-east-1' else ('s3-%s.amazonaws.com' % region)
 
     # AWS credentials are not required for publicly-writable buckets
-    access_key_id = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
+    access_key_id = get_access_key()
 
     bucket_url = 'https://{0}/{1}'.format(endpoint, bucket)
 
@@ -79,6 +79,6 @@ def get_upload_params(request):
 def generate_aws_v4_signature(request):
     message = unquote(request.POST['to_sign'])
     signing_date = datetime.strptime(request.POST['datetime'], '%Y%m%dT%H%M%SZ')
-    signing_key = get_aws_v4_signing_key(settings.AWS_SECRET_ACCESS_KEY, signing_date, settings.S3DIRECT_REGION, 's3')
+    signing_key = get_aws_v4_signing_key(get_signing_secret_key(), signing_date, settings.S3DIRECT_REGION, 's3')
     signature = get_aws_v4_signature(signing_key, message)
     return HttpResponse(signature)
